@@ -7,5 +7,7 @@ __pycache__/
 .env
 .venv
 *.png
+!docs/images/*.png
+!docs/images/**/*.png
 !.github/
 real_data_test/
