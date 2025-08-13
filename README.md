@@ -171,3 +171,15 @@ MIT © 2025 Yin-Kai Yu (余荫铠)
   ```
 
 其余章节同上英文版。
+
+## 🔁 Quick reproducibility
+
+- CLI (requires installation: `pip install -e .[all]`):
+  ```bash
+  datacollapse-cli --csv examples/sample_data.csv --mode fse-robust --outdir out
+  ```
+- Script (no installation needed inside repo):
+  ```bash
+  python examples/run_example.py
+  python examples/build_readme_images_from_real.py
+  ```
