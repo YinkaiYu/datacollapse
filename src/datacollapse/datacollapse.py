@@ -69,10 +69,10 @@ def _minimize_once(objfun: Callable[[np.ndarray], float], x0, bounds=None,
                 lo = _np.array([b[0] for b in bounds], float)
                 hi = _np.array([b[1] for b in bounds], float)
                 th = _np.clip(th, lo, hi)  # clip NM output before Powell
-            res2 = opt.minimize(lambda th: objfun(th), x0=th, method="Powell",
-                                bounds=bounds, options=dict(xtol=1e-6, maxiter=maxiter))
-            if res2.fun < res.fun:
-                th, fval = res2.x, float(res2.fun)
+                res2 = opt.minimize(lambda th: objfun(th), x0=th, method="Powell",
+                                    bounds=bounds, options=dict(xtol=1e-6, maxiter=maxiter))
+                if res2.fun < res.fun:
+                    th, fval = res2.x, float(res2.fun)
             return th, fval
     except Exception:
         # SciPy不可用或失败时的grid-refine回退

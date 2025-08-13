@@ -79,4 +79,15 @@
 - [ ] 发布：
   - [ ] README与OpenAPI规范/使用说明
   - [ ] GitHub仓库与CI构建
-  - [ ] （可选）Docker镜像与部署脚本 
+  - [ ] （可选）Docker镜像与部署脚本
+
+## 9) 上游贡献（提交到 mcp.science）
+- [ ] 目标：将本项目的 MCP 服务提交到上游开源集成仓库 `mcp.science`
+  - [ ] 阅读与对齐其规范说明（如何搭建 MCP 服务器）：参见文档 [How to build your own MCP server step by step](https://github.com/pathintegral-institute/mcp.science/blob/main/docs/how-to-build-your-own-mcp-server-step-by-step.md)
+  - [ ] 服务器结构与命名：在 `servers/` 下新增 `datacollapse` 子仓结构（遵循 hyphenated 项目名与 snake_case 包名规范）
+  - [ ] 打包与入口：提供 uv/pyproject 配置与入口点，确保可通过 `uvx mcp-science datacollapse` 启动
+  - [ ] 最小可运行示例：提供示例数据与最小调用工作流（fit_nofse、fit_fse_robust、collapse_transform）
+  - [ ] 文档：README、参数与 JSON Schema、使用步骤、典型错误与修正
+  - [ ] 提交 PR 到上游仓库，并根据 Review 调整
+
+ 
