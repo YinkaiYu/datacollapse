@@ -3,17 +3,17 @@
 [English](#datacollapse--quantum-critical-point-data-collapse-library) | [中文](#datacollapse--量子临界点数据坍缩工具库)
 
 A Python library for finite-size scaling (FSS) data collapse analysis:
-- **No-FSE**: Y ≈ f((U − U_c) L^a)
-- **With FSE**: Y ≈ f((U − U_c) L^a) · (1 + b L^c), with normalization support to eliminate amplitude degeneracy
-- **Universal function f(x)** represented by linear splines with second-difference smoothing, no need for analytical forms
-- **Weighted least squares** (weights = 1/σ²) with bootstrap uncertainty estimation
-- **Multi-optimizer support** with random restarts and robust FSE variants
+- Without finite-size correction: Y ≈ f((U − U_c) L^a)
+- With finite-size correction: Y ≈ f((U − U_c) L^a) · (1 + b L^c), with normalization support to eliminate amplitude degeneracy
+- Universal function f(x) represented by linear splines with second-difference smoothing, no need for analytical forms
+- Weighted least squares (weights = 1/σ²) with bootstrap uncertainty estimation
+- Multi-optimizer support with random restarts and robust finite-size-correction variants
 
 ---
 
 ## 🎯 Key Features
 - Joint fitting of (U_c, a[, b, c]) parameters with spline curve f(x)
-- Robust FSE interface: grid over (b, c), inner loop optimizes only (U_c, a)
+- Robust finite-size-correction interface: grid over (b, c), inner loop optimizes only (U_c, a)
 - Optimizer options: Nelder–Mead, Powell, or "NM→Powell" combination; supports random_restarts
 - Unified random_state for reproducibility
 - Compatible with `numpy`, `scipy`, `matplotlib`
@@ -25,11 +25,11 @@ A Python library for finite-size scaling (FSS) data collapse analysis:
 ### Before Collapse (Raw Data)
 ![Raw Data](docs/images/raw_data.png)
 
-### After No-FSE Collapse
-![No-FSE Collapse](docs/images/nofse_collapse.png)
+### After Collapse (without finite-size correction)
+![No finite-size correction](docs/images/nofse_collapse.png)
 
-### After FSE Collapse
-![FSE Collapse](docs/images/fse_collapse.png)
+### After Collapse (with finite-size correction)
+![With finite-size correction](docs/images/fse_collapse.png)
 
 ---
 
@@ -53,7 +53,7 @@ pip install -e .
 Input `data` should be a `numpy.ndarray` of shape (N,3):
 - Column 1: L (system size, positive numbers)
 - Column 2: U (control parameter)
-- Column 3: Y (observable, e.g., R01)
+- Column 3: Y (observable, e.g., R)
 
 Optional `err` (shape (N,) or (N,k)), last column is σ (vertical error bar) for each point.
 
@@ -61,7 +61,7 @@ Optional `err` (shape (N,) or (N,k)), last column is σ (vertical error bar) for
 
 ## 💡 Quick Examples
 
-### Minimal Example (No-FSE)
+### Minimal Example (without finite-size correction)
 ```python
 import numpy as np
 from datacollapse import fit_data_collapse, collapse_transform
@@ -69,7 +69,8 @@ from datacollapse import fit_data_collapse, collapse_transform
 # Generate example data (replace with your own data)
 L = np.repeat([7,9,11,13], 25)
 U = np.tile(np.linspace(8.3, 9.0, 25), 4)
-Y = np.sin((U-8.6)*L**1.1) * 0.2 + 0.5 + 0.02*np.random.randn(L.size)
+# Quadratic-like dependence in the scaling variable
+Y = 0.6 + 0.12*((U-8.6)*L**1.1) + 0.08*((U-8.6)*L**1.1)**2 + 0.02*np.random.randn(L.size)
 err = 0.03*np.ones_like(Y)
 
 data = np.column_stack([L,U,Y])
@@ -86,7 +87,7 @@ x, Yc = collapse_transform(data, params)
 # Plot (x, Yc) with matplotlib, color-coded by L
 ```
 
-### Minimal Example (FSE, Robust Variant)
+### Minimal Example (with finite-size correction, robust variant)
 ```python
 import numpy as np
 from datacollapse import fit_data_collapse_fse_robust, collapse_transform
@@ -122,6 +123,7 @@ python cli.py --csv your_data.csv --mode nofse \
 python cli.py --csv your_data.csv --mode fse-robust \
   --Uc0 8.65 --a0 1.0 --b_grid "0.2:1.2:0.2" --c_grid "-1.5:-0.3:0.2" \
   --n_knots 12 --lam 1e-3 --normalize --L_ref geom
+# Note: "fse-robust" mode performs a grid over (b,c) while optimizing (Uc,a)
 ```
 
 ---
@@ -130,7 +132,7 @@ python cli.py --csv your_data.csv --mode fse-robust \
 
 ### Parameter Bounds
 - `a` (ν^(-1)): [0.3, 2.0] if no prior; widen and use `random_restarts` if local minima issues
-- FSE `c < 0` (e.g., [-1.5, -0.05]); recommend `normalize=True` to reduce amplitude degeneracy
+- Finite-size correction exponent `c < 0` (e.g., [-1.5, -0.05]); recommend `normalize=True` to reduce amplitude degeneracy
 
 ### Spline Parameters
 - `n_knots`: 10–16 commonly used
@@ -145,9 +147,9 @@ python cli.py --csv your_data.csv --mode fse-robust \
 
 ## 🔧 Troubleshooting
 
-- **Optimization stuck at boundaries or oscillating**: Relax/reset `bounds`, increase `random_restarts`, or switch optimizers
-- **FSE (b,c) unstable**: Enable `normalize=True`; use robust variant; moderately increase `lam`
-- **Poor visual overlap**: Ensure using same (U_c,a,b,c) set for FSE plotting; confirm `normalize/L_ref` consistency
+- Optimization stuck at boundaries or oscillating: Relax/reset `bounds`, increase `random_restarts`, or switch optimizers
+- Finite-size correction (b,c) unstable: Enable `normalize=True`; use robust variant; moderately increase `lam`
+- Poor visual overlap: Ensure using same (U_c,a,b,c) set for plotting with finite-size correction; confirm `normalize/L_ref` consistency
 
 ---
 
@@ -186,17 +188,17 @@ MIT © 2025 Yin-Kai Yu (余荫铠)
 [English](#datacollapse--quantum-critical-point-data-collapse-library) | [中文](#datacollapse--量子临界点数据坍缩工具库)
 
 一个用于有限尺寸标度（Finite-Size Scaling, FSS）数据坍缩的 Python 库：
-- **无有限尺寸修正（No-FSE）**：Y ≈ f((U − U_c) L^a)
-- **带有限尺寸修正（FSE）**：Y ≈ f((U − U_c) L^a) · (1 + b L^c)，并支持归一化消除幅度简并
-- **f(x) 由带二阶差分平滑的线性样条表示**，无需预设解析形式
-- **加权最小二乘（权重=1/σ²）**，并支持 bootstrap 估计不确定度
-- **多优化器、多起点随机重启、稳健 FSE 变体**
+- 无有限尺寸修正：Y ≈ f((U − U_c) L^a)
+- 带有限尺寸修正：Y ≈ f((U − U_c) L^a) · (1 + b L^c)，支持归一化以降低幅度简并
+- f(x) 由带二阶差分平滑的线性样条表示，无需预设解析形式
+- 加权最小二乘（权重=1/σ²），并支持 bootstrap 估计不确定度
+- 多优化器、多起点随机重启、有限尺寸修正的稳健变体
 
 ---
 
 ## 🎯 特性亮点
-- 支持 (U_c, a[, b, c]) 与样条曲线 f(x) 的联合拟合
-- 提供稳健 FSE 接口：对 (b, c) 进行栅格，内层仅优化 (U_c, a)
+- 联合拟合 (U_c, a[, b, c]) 与样条曲线 f(x)
+- 有限尺寸修正的稳健接口：对 (b, c) 栅格搜索，内层仅优化 (U_c, a)
 - 优化器可选：Nelder–Mead、Powell、或"NM→Powell"组合；支持 random_restarts
 - 统一 random_state 以保证可重复性
 - 兼容 `numpy`, `scipy`, `matplotlib`
@@ -208,11 +210,11 @@ MIT © 2025 Yin-Kai Yu (余荫铠)
 ### 坍缩前（原始数据）
 ![原始数据](docs/images/raw_data.png)
 
-### No-FSE 坍缩后
-![No-FSE 坍缩](docs/images/nofse_collapse.png)
+### 坍缩后（不含有限尺寸修正）
+![不含有限尺寸修正](docs/images/nofse_collapse.png)
 
-### FSE 坍缩后
-![FSE 坍缩](docs/images/fse_collapse.png)
+### 坍缩后（包含有限尺寸修正）
+![包含有限尺寸修正](docs/images/fse_collapse.png)
 
 ---
 
@@ -235,20 +237,20 @@ pip install -e .
 输入 `data` 为形状 (N,3) 的 `numpy.ndarray`，列含义：
 - 第1列：L（系统尺寸，正数）
 - 第2列：U（控制参数）
-- 第3列：Y（观测量，如 R01）
+- 第3列：Y（无量纲量，例如 R）
 可选 `err`（形状 (N,) 或 (N,k)），最后一列为该点的 σ（竖向误差）。
 
 ---
 
-## 💡 最小示例（No-FSE）
+## 💡 最小示例（不含有限尺寸修正）
 ```python
 import numpy as np
 from datacollapse import fit_data_collapse, collapse_transform
 
-# 伪造示例数据（请用你自己的数据替换）
+# 伪造示例数据（请用你自己的数据替换），采用二次型依赖
 L = np.repeat([7,9,11,13], 25)
 U = np.tile(np.linspace(8.3, 9.0, 25), 4)
-Y = np.sin((U-8.6)*L**1.1) * 0.2 + 0.5 + 0.02*np.random.randn(L.size)
+Y = 0.6 + 0.12*((U-8.6)*L**1.1) + 0.08*((U-8.6)*L**1.1)**2 + 0.02*np.random.randn(L.size)
 err = 0.03*np.ones_like(Y)
 
 data = np.column_stack([L,U,Y])
@@ -267,7 +269,7 @@ x, Yc = collapse_transform(data, params)
 
 ---
 
-## 💡 最小示例（FSE，稳健变体）
+## 💡 最小示例（包含有限尺寸修正，稳健变体）
 ```python
 import numpy as np
 from datacollapse import fit_data_collapse_fse_robust, collapse_transform
@@ -302,6 +304,7 @@ python cli.py --csv your_data.csv --mode nofse \
 python cli.py --csv your_data.csv --mode fse-robust \
   --Uc0 8.65 --a0 1.0 --b_grid "0.2:1.2:0.2" --c_grid "-1.5:-0.3:0.2" \
   --n_knots 12 --lam 1e-3 --normalize --L_ref geom
+# 注："fse-robust" 模式会在 (b,c) 栅格上搜索，并在内层优化 (U_c,a)
 ```
 
 ---
@@ -309,7 +312,7 @@ python cli.py --csv your_data.csv --mode fse-robust \
 ## ⚙️ 推荐设置与经验
 - `bounds`：
   - `a`（即 ν^(-1)）若无先验，可设 [0.3, 2.0]；若局部最小值多，适当放宽并配合 `random_restarts`
-  - FSE 中 `c < 0`（如 [-1.5, -0.05]）；建议使用 `normalize=True` 降低幅度简并
+  - 有限尺寸修正中 `c < 0`（如 [-1.5, -0.05]）；建议使用 `normalize=True` 降低幅度简并
 - `n_knots` 与 `lam`：
   - 10–16 个结点较常用；`lam` 在 1e-4～1e-2 间调优，观察过拟合/过平滑迹象
 - 稳健性：
@@ -322,8 +325,8 @@ python cli.py --csv your_data.csv --mode fse-robust \
 
 ## 🔧 故障排查
 - 优化停在边界或震荡：放宽/重设 `bounds`，增加 `random_restarts`，或切换优化器
-- FSE (b,c) 不稳定：启用 `normalize=True`；改用稳健变体；适度增大 `lam`
-- 可视化不重叠：检查是否对 FSE 结果使用了相同一组 (U_c,a,b,c) 参数绘图；确认 `normalize/L_ref` 与拟合时一致
+- 有限尺寸修正 (b,c) 不稳定：启用 `normalize=True`；改用稳健变体；适度增大 `lam`
+- 可视化不重叠：绘图时确保使用同一组 (U_c,a,b,c) 参数；检查 `normalize/L_ref` 与拟合时一致
 
 ---
 
@@ -336,7 +339,7 @@ python cli.py --csv your_data.csv --mode fse-robust \
 
 ## 🛣️ 贡献与路线图
 - 欢迎提交问题/PR；单元测试位于 `tests/`
-- 后续计划：MCP 服务封装与开源上游贡献（mcp.science）
+- 后续计划：MCP 服务封装与上游贡献（mcp.science）
 
 ---
 
@@ -352,4 +355,4 @@ MIT © 2025 Yin-Kai Yu (余荫铠)
 ---
 
 ## 📝 附：绘图小建议
-- Matplotlib 文本建议使用英文/LaTeX 记号，避免中文乱码；如 `r'$R_{01}$'`
+- Matplotlib 文本建议使用英文/LaTeX 记号，避免中文乱码；如 `r'$R$'`
