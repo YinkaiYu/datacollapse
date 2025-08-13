@@ -183,3 +183,29 @@ MIT © 2025 Yin-Kai Yu (余荫铠)
   python examples/run_example.py
   python examples/build_readme_images_from_real.py
   ```
+
+## 🧩 MCP (Model Context Protocol) preview
+
+Planned endpoints (FastAPI):
+
+- fit_nofse
+  - input: csv (L,U,Y[,sigma]), U_c_0, a_0, n_knots, lam, n_boot, bounds, optimizer, maxiter, random_restarts
+  - output: params (U_c,a), errs, logs, artifacts (optional images)
+- fit_fse
+  - input: csv, U_c_0, a_0, b_0, c_0, n_knots, lam, n_boot, bounds (c<0), normalize, L_ref, optimizer, maxiter, random_restarts
+  - output: params (U_c,a,b,c), errs, logs, artifacts
+- fit_fse_robust
+  - input: csv, U_c_0, a_0, b_grid, c_grid, n_knots, lam, n_boot, bounds_Ua, normalize, L_ref, optimizer, maxiter, random_restarts
+  - output: params (U_c,a,b,c), errs, per-cell logs, artifacts
+- collapse_transform
+  - input: csv, params[, normalize, L_ref]
+  - output: x, Yc (arrays), or saved plot
+
+JSON schema notes:
+- bounds, bounds_Ua: [[lo,hi],[lo,hi], ...]
+- normalize: boolean; L_ref: 'geom' | number
+- Optimizer: 'NM' | 'Powell' | 'NM_then_Powell'
+
+Security & limits:
+- Max N points, execution timeout, concurrency limits
+- Result caching & artifact expiration

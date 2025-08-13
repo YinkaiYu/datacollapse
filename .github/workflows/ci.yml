@@ -21,10 +21,15 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy pandas matplotlib scipy pytest
+          pip install -e .[dev]
 
       - name: Run tests
         env:
           PYTHONPATH: src
         run: |
-          pytest -q 
+          pytest -q
+
+      - name: CLI smoke test
+        run: |
+          python -m datacollapse.__main__ --csv examples/sample_data.csv --mode fse-robust --outdir out
+          test -f out/before.png && test -f out/after.png 
