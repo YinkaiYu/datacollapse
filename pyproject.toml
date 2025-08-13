@@ -6,18 +6,49 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "datacollapse"
 version = "0.1.0"
-description = "Data collapse fitting with spline smoothing and robust FSE options"
-readme = "src/datacollapse/README.md"
-authors = [{ name = "QCP Team" }]
-license = { file = "LICENSE" }
-requires-python = ">=3.8"
-dependencies = [
-  "numpy>=1.21",
-  "scipy>=1.8",
+description = "Finite-size scaling data collapse with spline smoothing and robust finite-size corrections"
+readme = "README.md"
+authors = [
+    { name = "Yin-Kai Yu", email = "yinkai.yu@gmail.com" }
 ]
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+keywords = [
+    "data-collapse", "finite-size-scaling", "critical-phenomena", "quantum-critical-point",
+    "physics", "statistical-mechanics", "spline", "bootstrap", "scaling-theory"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy>=1.21",
+    "scipy>=1.8",
+]
+
+[project.optional-dependencies]
+plotting = ["matplotlib>=3.5"]
+cli = ["pandas>=1.3"]
+dev = ["pytest>=6.0", "matplotlib>=3.5", "pandas>=1.3"]
+all = ["matplotlib>=3.5", "pandas>=1.3"]
 
 [project.urls]
 Homepage = "https://github.com/YinkaiYu/datacollapse"
+Repository = "https://github.com/YinkaiYu/datacollapse.git"
+"Bug Tracker" = "https://github.com/YinkaiYu/datacollapse/issues"
+Documentation = "https://github.com/YinkaiYu/datacollapse/blob/main/src/datacollapse/README.md"
+
+[project.scripts]
+datacollapse-cli = "datacollapse.__main__:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -27,6 +58,3 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "datacollapse" = ["README.md"]
-
-[project.scripts]
-datacollapse-example = "datacollapse.__main__:main"
