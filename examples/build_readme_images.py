@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import argparse
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -24,7 +25,7 @@ rcParams['figure.figsize'] = (10, 6)
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 IMAGES_DIR = os.path.join(ROOT, 'docs', 'images')
-CSV_PATH = os.path.join(HERE, 'sample_data.csv')
+DEFAULT_CSV_PATH = os.path.join(HERE, 'sample_data.csv')
 
 
 def load_sample_csv(csv_path: str):
@@ -47,15 +48,13 @@ def compute_window(df: pd.DataFrame, width: float = 0.10):
     U_min, U_max = float(U_vals.min()), float(U_vals.max())
     if U_max - U_min <= width:
         return U_min, U_max
-    # slide center and compute across-L std within window
     centers = np.linspace(U_min + 0.5*width, U_max - 0.5*width, 60)
     best_c, best_score = centers[0], np.inf
     for c in centers:
         lo, hi = c - 0.5*width, c + 0.5*width
         sub = df[(df['U'] >= lo) & (df['U'] <= hi)]
-        # group by L, compute Y std, then take mean across L
         scores = []
-        for Lv, g in sub.groupby('L'):
+        for _, g in sub.groupby('L'):
             if len(g) >= 3:
                 scores.append(np.nanstd(g['Y'].to_numpy(float)))
         if len(scores) >= 2:
@@ -145,7 +144,6 @@ def best_nofse_params(data_win: np.ndarray, err: np.ndarray | None):
             except Exception:
                 continue
     if best is None:
-        # fallback single fit
         params, _ = fit_data_collapse(
             data_win, err, (u_min+u_max)/2, 1.0,
             n_knots=12, lam=1e-3, n_boot=0, random_state=0,
@@ -157,28 +155,32 @@ def best_nofse_params(data_win: np.ndarray, err: np.ndarray | None):
 
 
 def main():
-    print('Loading sample data:', CSV_PATH)
-    data, err, df = load_sample_csv(CSV_PATH)
+    parser = argparse.ArgumentParser(description='Build README collapse images from CSV')
+    parser.add_argument('--csv', type=str, default=DEFAULT_CSV_PATH, help='Path to CSV with columns L,U,Y[,sigma]')
+    parser.add_argument('--width', type=float, default=0.10, help='U-window width for near-critical selection')
+    args = parser.parse_args()
 
-    # Plot raw (full)
+    csv_path = os.path.abspath(args.csv)
+    width = float(args.width)
+
+    print('Loading data:', csv_path)
+    data, err, df = load_sample_csv(csv_path)
+
     raw_png = os.path.join(IMAGES_DIR, 'raw_data.png')
     plot_raw(df, raw_png)
     print('Saved:', raw_png)
 
-    # Choose a near-critical U window to improve visual overlap
-    lo, hi = compute_window(df, width=0.10)
+    lo, hi = compute_window(df, width=width)
     df_win = df[(df['U'] >= lo) & (df['U'] <= hi)].copy()
     data_win = np.column_stack([df_win['L'].to_numpy(float), df_win['U'].to_numpy(float), df_win['Y'].to_numpy(float)])
     err_win = df_win['sigma'].to_numpy(float) if 'sigma' in df_win.columns else None
 
-    # Fit without finite-size correction using robust multi-start scan
     print(f'Fitting without finite-size correction on window [{lo:.4f}, {hi:.4f}] ...')
     params_nofse = best_nofse_params(data_win, err_win)
     nofse_png = os.path.join(IMAGES_DIR, 'nofse_collapse.png')
     plot_collapse(data_win, params_nofse, nofse_png, normalize=False)
     print('Saved:', nofse_png, 'params=', params_nofse)
 
-    # Fit with finite-size correction (robust variant) on the same window
     print('Fitting with finite-size correction (robust) ...')
     b_grid = np.linspace(0.2, 1.2, 6)
     c_grid = np.linspace(-1.5, -0.3, 7)
