@@ -1,0 +1,32 @@
+
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "datacollapse"
+version = "0.1.0"
+description = "Data collapse fitting with spline smoothing and robust FSE options"
+readme = "src/datacollapse/README.md"
+authors = [{ name = "QCP Team" }]
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+dependencies = [
+  "numpy>=1.21",
+  "scipy>=1.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/YinkaiYu/datacollapse"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"datacollapse" = ["README.md"]
+
+[project.scripts]
+datacollapse-example = "datacollapse.__main__:main"
